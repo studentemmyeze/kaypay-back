@@ -22,7 +22,7 @@ console.log("korotepay backend started...")
 
 
 
-var fs = require('fs');
+// var fs = require('fs');
 uri = '';
 user = '';
 password = '';
@@ -228,7 +228,7 @@ async function onDBWrite(req, res) {
         gLoggedInLocal = true
         answer = await createQuery(driver,query,'em', option)
         console.log('this is answer::', answer)
-        if (answer !== undefined && answer != []) {
+        if (answer !== undefined && answer.length > 0) {
             gLoggedInLocal = true
         }
         
@@ -326,7 +326,7 @@ async function createQuery (driver, writeQuery, username, option) {
     
         }
         else if (option === '2') {
-            const aa_temp = writeResult.records.map(record => {
+            writeResult.records.map(record => {
                 const keysAvailable = record.keys[0]
                 // if ( count=== 0 ) {console.log('record::', record)}
 
@@ -347,7 +347,7 @@ async function createQuery (driver, writeQuery, username, option) {
             const aa_temp = writeResult.records.map(record => {
                 const rec = record._fields
                 // console.log('rec. ::', rec)
-                const rec2 = record['_fields']
+                // const rec2 = record['_fields']
                 // console.log('rec2. ::', rec2)
                 return rec
             })
@@ -385,12 +385,12 @@ async function findQuery(driver, readQuery,username, option) {
         // console.log("read result-records::", readResult.records);
         // console.log("read result-record1111::", readResult.records[0].toObject());
         // console.log("read result-records[0]::", readResult.records[0]);
-        const a = readResult.records[0].toObject();
+        // const a = readResult.records[0].toObject();
         // console.log("a==", (JSON.stringify(a))['properties'])
         let aa = []
         let count = 0
         if (option === '1') {
-        const aa_temp = readResult.records.map(record => {
+         readResult.records.map(record => {
 
             const keysAvailable = record.keys[0]
                 // if ( count=== 0 ) {console.log('record::', record)}
@@ -411,7 +411,7 @@ async function findQuery(driver, readQuery,username, option) {
     
         }
         else if (option === '2') {
-            const aa_temp = readResult.records.map(record => {
+            readResult.records.map(record => {
                 const answer = []
                 if (record.keys.length > 1) {
                 for (r in record.keys) {
@@ -447,17 +447,17 @@ async function findQuery(driver, readQuery,username, option) {
         
             }
         else {
-            const aa_temp = readResult.records.map(record => {
+            readResult.records.map(record => {
                 const rec = record._fields
                 // console.log('rec. ::', rec)
-                const rec2 = record['_fields']
+                // const rec2 = record['_fields']
                 if ( count=== 0 ) {console.log('node::', rec)}
                 count += 1
                 // console.log('rec2. ::', rec2)
                 return rec
             })
             // console.log("aa_else::", aa)
-            aa = aa_temp
+            // aa = aa_temp
 
         }
         // console.log("aa::", aa)
@@ -481,3 +481,238 @@ async function findQuery(driver, readQuery,username, option) {
 // this backend should do send of email to students
 
 // this backend should do create student emails
+app.route('/api/actions_gen_email').post(onEmailDataSent)
+async function onEmailDataSent(req, res) {
+    const studentData = req.body;
+    for (let i = 0; i < studentData.length ; i++) {
+        const obj = {
+            "primaryEmail": `${studentData[i].studentNo}@topfaith.edu.ng`,
+            "name": {
+                "givenName": `${studentData[i].firstName}${studentData[i].middleName ? " " + studentData[i].middleName : '' }`,
+                "familyName": studentData[i].lastName,
+            },
+            "suspended": false,
+            "password": "123456789",
+
+            "changePasswordAtNextLogin": false,
+            "ipWhitelisted": false,
+            "ims": [
+                {
+                    "type": "work",
+                    "protocol": "gtalk",
+                    "im": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "primary": true
+                }
+            ],
+            "emails": [
+                {
+                    "address": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "type": "home",
+                    "customType": "",
+                    "primary": true
+                }
+            ],
+            "addresses": [
+                {
+                    "type": "work",
+                    "customType": "",
+                    "streetAddress": "Topfaith University, Mkpatak",
+                    "locality": "Essien Udim",
+                    "region": "AKWAIBOM",
+                    "postalCode": "94043"
+                }
+            ],
+            "externalIds": [
+                {
+                    "value": `${studentData[i].studentNo}`,
+                    "type": "custom",
+                    "customType": "student"
+                }
+            ],
+
+            "organizations": [
+                {
+                    "name": "Topfaith University, Mkpatak",
+                    "title": "Student",
+                    "primary": true,
+                    "type": "work",
+                    "department": `${studentData[i].programme ? studentData[i].programme : '' }`,
+                    "description": "Undergraduate University Student",
+
+                }
+            ],
+            "phones": [
+                {
+                    "value": `${studentData[i].phone ? (studentData[i].phone) : ''}`,
+                    "type": "work"
+                }
+            ],
+            "orgUnitPath": "/Topfaith University Students",
+            "includeInGlobalAddressList": true
+
+        }
+
+        console.log('It ran')
+        await createMailAccount(obj, studentData[i].studentNo);
+        waitforme(4000)
+
+    }
+
+    // console.log('\nXXXXXGeneratedEmailsList::XXXX\n',createdEmails  );
+
+    res.status(201).json({
+        message: "student  email created successfully", status: 201, data: createdEmails
+
+    });
+}
+
+async function createMailAccount(aData, studentNo) {
+    try {
+        const A = await requestWithRetry();
+        waitforme(2000)
+
+        await prepareMail(A, aData, studentNo );
+    }
+    catch (error) {
+        console.log('CATCH ERROR- Create Mail Account')
+        // return 0
+    }
+}
+
+async function joinMailGroups(aStudentData) {
+    try {
+        const AA = await requestWithRetry_gp();
+        waitforme(1500)
+        const C = add2groups(AA, aStudentData)
+
+        // return 1
+    }
+    catch (error) {
+        console.log('GROUPS::CATCH ERROR')
+        // return 0
+    }
+}
+
+async function add2groups(token, aData) {
+    try {
+        const data = JSON.stringify(
+            {
+                "email": `${aData.studentNo}@topfaith.edu.ng`,
+                "role": "MEMBER"
+            }
+        );
+        //console.log('THIS IS TOKEN2', token, data)
+
+        const options = {
+            host: 'admin.googleapis.com',
+            path: '/admin/directory/v1/groups/topfaithuniversitystudents@topfaith.edu.ng/members',
+
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
+            },
+        };
+
+        const req = https2.request(options, res => {
+            console.log(`statusCode: ${res.statusCode}`);
+
+            res.on('data', d => {
+
+
+                process.stdout.write(d);
+            });
+        });
+
+        req.on('error', error => {
+            console.error(error);
+        });
+
+        req.write(data);
+        // joinedEmailsGroup.push(aData.studentNo)
+        req.end();
+        // return 1;
+        // if (i+1 === sizeOfArray) {groupDone = true;}
+
+    }
+    catch (err) {
+        console.log('error add2groups')
+        // return 0
+    }
+}
+
+async function prepareMail(token, aData, studentNo) {
+    try {
+        const data = JSON.stringify(aData);
+        console.log('@PREPAREMAIL-THIS IS TOKEN', token.res.data.access_token)
+        //console.log('THIS IS FULL TOKEN', token)
+
+
+        const options = {
+            host: 'admin.googleapis.com',
+            path: '/admin/directory/v1/users',
+
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
+            },
+        };
+
+        const req = https.request(options, res => {
+            console.log(`statusCode: ${res.statusCode}`);
+
+            res.on('data', d => {
+
+
+                process.stdout.write(d);
+            });
+        });
+
+        req.on('error', error => {
+            console.error(error);
+        });
+
+        req.write(data);
+
+        // createdEmails.push(studentNo)
+        // createdEmailStatus[i] = 1
+        // if (i+1 === sizeOfArray) {emailDone = true;}
+        req.end();
+
+
+        // return token.res.data.access_token
+    }
+    catch (err) {
+        console.log('error prepare mail')
+        return 0
+    }
+}
+
+
+
+async function requestWithRetry () {
+    const MAX_RETRIES = 3;
+    for (let i = 0; i <= MAX_RETRIES; i++) {
+        try {
+            return await oAuth2Client1.getAccessToken()
+        } catch (err) {
+            const timeout = Math.pow(2, i);
+            console.log('Waiting', timeout, 'ms');
+            await wait(timeout);
+            console.log('Retrying', err.message, i);
+        }
+    }
+}
+
+async function requestWithRetry_gp () {
+    const MAX_RETRIES = 3;
+    for (let i = 0; i <= MAX_RETRIES; i++) {
+        try {
+            return await oAuth2Client2.getAccessToken()
+        } catch (err) {
+            const timeout = Math.pow(2, i);
+            console.log('Waiting', timeout, 'ms');
+            await wait(timeout);
+            console.log('Retrying', err.message, i);
+        }
+    }
+}
