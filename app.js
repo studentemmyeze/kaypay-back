@@ -26,24 +26,59 @@ console.log("korotepay backend started...")
 uri = '';
 user = '';
 password = '';
+
+CLIENT_ID =
+    ''
+CLIENT_SECRET = ''
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
+REFRESH_TOKEN =
+    ''
+try {
+
+    uri = process.env.URI;
+    user = process.env.USER;
+    password = process.env.PASSWORD;
+    CLIENT_ID =process.env.CLIENT_ID ;
+    console.log("===========")
+    console.log("Done reading settings variables", uri, user);
+    console.log("===========")
+
+}
+catch(e) {
+    console.log('Error with env variables:', e.stack);
+}
+
+const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+oAuth2Client.setCredentials({refresh_token: REFRESH_TOKEN})
+
+const oAuth2Client1 = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+oAuth2Client1.setCredentials({refresh_token: REFRESH_TOKEN})
+
+const oAuth2Client2 = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
+oAuth2Client2.setCredentials({refresh_token: REFRESH_TOKEN})
+// set auth as a global default
+google.options({
+    auth: oAuth2Client
+});
+
 var gLoggedIn = false;
 
 var gDriverBank = []
 
 
-try {
 
-    uri = process.env.URI
-    user = process.env.USER;
-    password = process.env.PASSWORD;
-    console.log("===========")
-    console.log("Done reading settings variables", uri, user);
-    console.log("===========")
-  
-  }
-  catch(e) {
-    console.log('Error with env variables:', e.stack);
-  }
+
+const createdEmails = []
+const joinedEmailsGroup = []
+var createdEmailStatus = []
+var joinedEmailsGroupStatus = []
+emailDone = false;
+groupDone = false;
+sizeOfArray = 0;
+
+function waitforme(ms)  {
+    return new Promise( resolve => { setTimeout(resolve, ms); });
+}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
