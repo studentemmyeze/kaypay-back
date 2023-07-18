@@ -592,7 +592,7 @@ async function onEmailDataSent(req, res) {
 
         console.log('It ran')
         await createMailAccount(obj, studentData[i].studentNo);
-        waitforme(4000)
+        await waitforme(4000)
 
     }
 
@@ -607,7 +607,7 @@ async function onEmailDataSent(req, res) {
 async function createMailAccount(aData, studentNo) {
     try {
         const A = await requestWithRetry();
-        waitforme(2000)
+        await waitforme(2000)
 
         await prepareMail(A, aData, studentNo );
     }
@@ -620,8 +620,8 @@ async function createMailAccount(aData, studentNo) {
 async function joinMailGroups(aStudentData) {
     try {
         const AA = await requestWithRetry_gp();
-        waitforme(1500)
-        const C = add2groups(AA, aStudentData)
+        await waitforme(1500)
+        const C = await add2groups(AA, aStudentData)
 
         // return 1
     }
