@@ -38,7 +38,10 @@ try {
     uri = process.env.URI;
     user = process.env.USER;
     password = process.env.PASSWORD;
-    CLIENT_ID =process.env.CLIENT_ID ;
+    CLIENT_ID = process.env.CLIENT_ID ;
+    CLIENT_SECRET =  process.env.CLIENT_SECRET ;
+    REFRESH_TOKEN =  process.env.REFRESH_TOKEN ;
+
     console.log("===========")
     console.log("Done reading settings variables", uri, user);
     console.log("===========")
