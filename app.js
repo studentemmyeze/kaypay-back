@@ -7,7 +7,7 @@ const nodemailer = require ('nodemailer')
 const {google} = require ('googleapis')
 const neo4j = require('neo4j-driver');
 const fileUpload = require('express-fileupload');
-
+const { OAuth2Client } = require('google-auth-library');
 require('dotenv').config();
 
 
@@ -50,6 +50,17 @@ try {
 catch(e) {
     console.log('Error with env variables:', e.stack);
 }
+
+
+const SCOPES = ['https://www.googleapis.com/auth/gmail.compose'];
+
+const oauth2ClientTrail = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+
+
+
+
+
+
 
 const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 oAuth2Client.setCredentials({refresh_token: REFRESH_TOKEN})
@@ -754,3 +765,69 @@ async function requestWithRetry_gp () {
         }
     }
 }
+
+
+async function authenticateTest(req, res) {
+
+    // const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+    // try {
+    //     const session = driver.session({ database: 'neo4j' });
+    //     await session.close();
+    //     loggedIn = true;
+    // } catch (error) {
+    //     console.error(`Something went wrong: ${error}`);
+    //     loggedIn = false;
+    // } finally {
+    //     console.log("Connection to DB made successfully")
+    //     await driver.close();
+    // }
+    if (!gLoggedIn) {
+        const driver = await DBLogin();
+        if (driver) {
+            gDriverBank = []
+            gDriverBank.push(driver)
+            gLoggedIn = true
+        }
+    }
+
+
+
+    if  (gLoggedIn === true) {
+        res.status(200).json({
+            driver: gDriverBank[0],
+            message: "database found and connected",
+            status: 200
+        });
+    }
+    else {
+        res.status(202).json({
+            message: "database not connected",
+            status: 202
+        });
+    }
+
+}
+
+// Step 1: Initiate the OAuth2 flow
+app.get('/auth', (req, res) => {
+    const authUrl = oauth2ClientTrail.generateAuthUrl({
+        access_type: 'offline',
+        scope: SCOPES,
+    });
+    res.redirect(authUrl);
+});
+
+// Step 2: Handle the OAuth2 callback
+app.get('/auth/callback', async (req, res) => {
+    const { code } = req.query;
+    try {
+        const { tokens } = await oauth2ClientTrail.getToken(code);
+        console.log('tokens22::', tokens)
+        oauth2ClientTrail.setCredentials(tokens);
+        // Now, tokens.access_token can be used to create the email account (Step 4).
+        res.send('OAuth2 successful. You can now create the email account.');
+    } catch (error) {
+        console.error('Error exchanging code for access token:', error);
+        res.status(500).send('Failed to complete OAuth2 flow.');
+    }
+});
