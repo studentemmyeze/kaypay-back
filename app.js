@@ -621,10 +621,11 @@ async function createMailAccount(aData, studentNo) {
         await waitforme(2000)
 
         await prepareMail(A, aData, studentNo );
+        return 1
     }
     catch (error) {
         console.log('CATCH ERROR- Create Mail Account')
-        // return 0
+        return 0
     }
 }
 
@@ -836,24 +837,50 @@ app.get('/create-emails2', async (req, res) => {
         {studentNo:'test002', firstName: 'T1', middleName: 'TM', lastName:'TL'},
         {studentNo:'test003', firstName: 'T1', middleName: 'TM', lastName:'TL'},
     ]
+    const success = [];
+    const failures = [];
     for (let i = 0; i < studentData.length ; i++) {
+
         const obj = {
             "primaryEmail": `${studentData[i].studentNo}@topfaith.edu.ng`,
             "name": {
                 "givenName": `${studentData[i].firstName}${studentData[i].middleName ? " " + studentData[i].middleName : ''}`,
                 "familyName": studentData[i].lastName,
-            }
+            },
+            "suspended": false,
+            "password": "123456789",
+
+            "changePasswordAtNextLogin": false,
+            "ipWhitelisted": false,
+            "ims": [
+                {
+                    "type": "work",
+                    "protocol": "gtalk",
+                    "im": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "primary": true
+                }
+            ],
+            "emails": [
+                {
+                    "address": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "type": "home",
+                    "customType": "",
+                    "primary": true
+                }
+            ],
         }
 
         console.log('It ran')
-        await createMailAccount(obj, studentData[i].studentNo);
+        const {answer} = await createMailAccount(obj, studentData[i].studentNo);
+        if (answer === 1) {success.push(studentData[i].studentNo)}
+        else {failures.push(studentData[i].studentNo)}
         await waitforme(4000);
     }
 
 // console.log('\nXXXXXGeneratedEmailsList::XXXX\n',createdEmails  );
 
 res.status(201).json({
-    message: "student  email created successfully", status: 201, data: createdEmails
+    message: "student  email created successfully", status: 201, data: [success,failures]
 
 });
 
