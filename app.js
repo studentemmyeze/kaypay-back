@@ -615,17 +615,22 @@ async function onEmailDataSent(req, res) {
     });
 }
 
-async function createMailAccount(aData, studentNo) {
+async function createMailAccount(aData, studentNo, requestMarker) {
+      let A
     try {
-        const A = await requestWithRetry();
-        await waitforme(2000)
+        if (requestMarker[0] == 1) {
+            A = await requestWithRetry();
+            await waitforme(2000)
+        }
+        else {A = requestMarker[1]}
+
 
         await prepareMail(A, aData, studentNo );
-        return 1
+        return [1, A]
     }
     catch (error) {
         console.log('CATCH ERROR- Create Mail Account')
-        return 0
+        return [0]
     }
 }
 
@@ -839,6 +844,11 @@ app.get('/create-emails2', async (req, res) => {
     ]
     const success = [];
     const failures = [];
+    let timeout = 30; //seconds
+    console.log("start:" + new Date());
+    let start = Number(Date.now());
+    let end = start + timeout * 1000;
+    let requestMarker = [{status: 0, A: null}]
     for (let i = 0; i < studentData.length ; i++) {
 
         const obj = {
@@ -871,9 +881,19 @@ app.get('/create-emails2', async (req, res) => {
         }
 
         console.log('It ran')
-        const {answer} = await createMailAccount(obj, studentData[i].studentNo);
-        if (answer === 1) {success.push(studentData[i].studentNo)}
-        else {failures.push(studentData[i].studentNo)}
+
+        const myNow = Number(Date.now())
+        if (myNow >= end || i == 0){
+            end = myNow + timeout * 1000;
+            requestMarker[0].status = 1
+        }
+        else {requestMarker[0].status = 0}
+        const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
+        if (answer[0] === 1) {
+            success.push(studentData[i].studentNo)
+            requestMarker[0].A = answer[1]
+        }
+        else if (answer[0] == 0){failures.push(studentData[i].studentNo)}
         await waitforme(4000);
     }
 
