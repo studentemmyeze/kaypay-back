@@ -694,12 +694,9 @@ async function prepareMail(token, aData, studentNo) {
         const data = JSON.stringify(aData);
         console.log('@PREPAREMAIL-THIS IS TOKEN', token.res.data.access_token)
         //console.log('THIS IS FULL TOKEN', token)
-
-
         const options = {
             host: 'admin.googleapis.com',
             path: '/admin/directory/v1/users',
-
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
@@ -746,7 +743,7 @@ async function requestWithRetry () {
         } catch (err) {
             const timeout = Math.pow(2, i);
             console.log('Waiting', timeout, 'ms');
-            await wait(timeout);
+            await waitforme(timeout);
             console.log('Retrying', err.message, i);
         }
     }
@@ -760,7 +757,7 @@ async function requestWithRetry_gp () {
         } catch (err) {
             const timeout = Math.pow(2, i);
             console.log('Waiting', timeout, 'ms');
-            await wait(timeout);
+            await waitforme(timeout);
             console.log('Retrying', err.message, i);
         }
     }
@@ -831,3 +828,37 @@ app.get('/auth/callback', async (req, res) => {
         res.status(500).send('Failed to complete OAuth2 flow.');
     }
 });
+
+
+app.get('/create-emails2', async (req, res) => {
+    const studentData = [
+        {studentNo:'test001', firstName: 'T1', middleName: 'TM', lastName:'TL'},
+        {studentNo:'test002', firstName: 'T1', middleName: 'TM', lastName:'TL'},
+        {studentNo:'test003', firstName: 'T1', middleName: 'TM', lastName:'TL'},
+    ]
+    for (let i = 0; i < studentData.length ; i++) {
+        const obj = {
+            "primaryEmail": `${studentData[i].studentNo}@topfaith.edu.ng`,
+            "name": {
+                "givenName": `${studentData[i].firstName}${studentData[i].middleName ? " " + studentData[i].middleName : ''}`,
+                "familyName": studentData[i].lastName,
+            }
+        }
+
+        console.log('It ran')
+        await createMailAccount(obj, studentData[i].studentNo);
+        await waitforme(4000);
+    }
+
+// console.log('\nXXXXXGeneratedEmailsList::XXXX\n',createdEmails  );
+
+res.status(201).json({
+    message: "student  email created successfully", status: 201, data: createdEmails
+
+});
+
+
+
+});
+
+
