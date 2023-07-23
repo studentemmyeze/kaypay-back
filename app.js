@@ -883,7 +883,7 @@ app.get('/create-emails2', async (req, res) => {
         console.log('It ran')
 
         const myNow = Number(Date.now())
-        if (myNow >= end || i == 0){
+        if (myNow >= end || i == 0 || requestMarker[0].A == null ){
             end = myNow + timeout * 1000;
             requestMarker[0].status = 1
         }
