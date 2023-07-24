@@ -531,7 +531,7 @@ async function findQuery(driver, readQuery,username, option) {
 
 // this backend should do create student emails
 app.route('/api/actions_gen_email').post(onEmailDataSent)
-async function onEmailDataSent(req, res) {
+async function onEmailDataSent_old(req, res) {
     const studentData = req.body;
     for (let i = 0; i < studentData.length ; i++) {
         const obj = {
@@ -615,18 +615,167 @@ async function onEmailDataSent(req, res) {
     });
 }
 
-async function createMailAccount(aData, studentNo, requestMarker) {
-      let A
-    try {
-        if (requestMarker[0] == 1) {
-            A = await requestWithRetry();
-            await waitforme(2000)
+async function onEmailDataSent(req,res) {
+    const studentData = req.body;
+    const success = [];
+    const failures = [];
+    const successGp = [];
+    const failuresGp = [];
+    let timeout = 30; //seconds
+    console.log(`email creation for ${studentData.length} students started @: ` + new Date());
+    let start = Number(Date.now());
+    let end = start + timeout * 1000;
+    let requestMarker = [{status: 0, A: null}]
+    for (let i = 0; i < studentData.length ; i++) {
+
+        const obj = {
+            "primaryEmail": `${studentData[i].studentNo}@topfaith.edu.ng`,
+            "name": {
+                "givenName": `${studentData[i].firstName}${studentData[i].middleName ? " " + studentData[i].middleName : '' }`,
+                "familyName": studentData[i].lastName,
+            },
+            "suspended": false,
+            "password": "123456789",
+
+            "changePasswordAtNextLogin": false,
+            "ipWhitelisted": false,
+            "ims": [
+                {
+                    "type": "work",
+                    "protocol": "gtalk",
+                    "im": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "primary": true
+                }
+            ],
+            "emails": [
+                {
+                    "address": `${studentData[i].studentNo}@topfaith.edu.ng`,
+                    "type": "home",
+                    "customType": "",
+                    "primary": true
+                }
+            ],
+            "addresses": [
+                {
+                    "type": "work",
+                    "customType": "",
+                    "streetAddress": "Topfaith University, Mkpatak",
+                    "locality": "Essien Udim",
+                    "region": "AKWAIBOM",
+                    "postalCode": "94043"
+                }
+            ],
+            "externalIds": [
+                {
+                    "value": `${studentData[i].studentNo}`,
+                    "type": "custom",
+                    "customType": "student"
+                }
+            ],
+
+            "organizations": [
+                {
+                    "name": "Topfaith University, Mkpatak",
+                    "title": "Student",
+                    "primary": true,
+                    "type": "work",
+                    "department": `${studentData[i].programme ? studentData[i].programme : '' }`,
+                    "description": "Undergraduate University Student",
+
+                }
+            ],
+            "phones": [
+                {
+                    "value": `${studentData[i].phone ? (studentData[i].phone) : ''}`,
+                    "type": "work"
+                }
+            ],
+            "orgUnitPath": "/Topfaith University Students",
+            "includeInGlobalAddressList": true
+
         }
-        else {A = requestMarker[1]}
+
+        // console.log('It ran')
+
+        const myNow = Number(Date.now())
+        if (myNow >= end || i == 0 || requestMarker[0].A == null || requestMarker[0].A == undefined){
+            console.log('In first-myNow')
+            end = myNow + timeout * 1000;
+            requestMarker[0].status = 1
+        }
+        else {
+            requestMarker[0].status = 0
+            console.log('In else-myNow')
+        }
+        // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
+        createMailAccount(obj, studentData[i].studentNo, requestMarker).then(answer => {
+            if (answer[0] === 1) {
+                success.push(studentData[i].studentNo)
+                requestMarker[0].A = answer[1]
+                console.log('requestMarker after success @CreatMailLoop::', requestMarker)
+            }
+            else if (answer[0] == 0){failures.push(studentData[i].studentNo)}
+        });
 
 
-        await prepareMail(A, aData, studentNo );
-        return [1, A]
+        await waitforme(4000);
+    }
+    await waitforme(4000);
+    let start2 = Number(Date.now());
+    let end2 = start + timeout * 1000;
+    let requestMarker2 = [{status: 0, A: null}]
+    for (let j = 0; j < success.length ; j++) {
+        const studData = success[j];
+        console.log('@groups, It ran', studData)
+
+        const myNow2 = Number(Date.now())
+        if (myNow2 >= end2 || j == 0 || requestMarker2[0].A == null || requestMarker2[0].A == undefined){
+            console.log('@groups,In first-myNow')
+            end2 = myNow2 + timeout * 1000;
+            requestMarker2[0].status = 1
+        }
+        else {
+            requestMarker2[0].status = 0
+            console.log('@groups,In else-myNow')
+        }
+        // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
+        add2groupsParent( studData, requestMarker2 ).then(answer => {
+            console.log('requestMarker after  @add2groupsParentLoop::', requestMarker2)
+            if (answer[0] === 1) {
+                successGp.push(studData)
+                requestMarker2[0].A = answer[1]
+            }
+            else if (answer[0] == 0){failuresGp.push(studData)}
+        });
+
+
+        await waitforme(4000);
+    }
+
+    res.status(201).json({
+        message: "student  email created successfully", status: 201, data: [success,failures,successGp,failuresGp]
+
+    });
+
+
+  }
+async function createMailAccount(aData, studentNo, requestMarker) {
+      const A = [null]
+    try {
+        if (requestMarker[0].status == 1) {
+            console.log('trying to get token...')
+            requestWithRetry().then(results => {
+                A[0] = results
+                console.log('A0::', A[0])
+
+            })
+
+        }
+        else {A[0] = requestMarker[0].A}
+        await waitforme(2000)
+
+        await prepareMail(A[0], aData, studentNo );
+        return [1, A[0]]
     }
     catch (error) {
         console.log('CATCH ERROR- Create Mail Account')
@@ -650,6 +799,7 @@ async function joinMailGroups(aStudentData) {
 
 async function add2groups(token, aData) {
     try {
+        // "email": `${aData.studentNo}@topfaith.edu.ng`,
         const data = JSON.stringify(
             {
                 "email": `${aData.studentNo}@topfaith.edu.ng`,
@@ -694,18 +844,98 @@ async function add2groups(token, aData) {
         // return 0
     }
 }
+async function add2groupstrial(token, studentNo) {
+      let referenceYear = new Date().getFullYear().toString();
+    try {
+        // "email": `${aData.studentNo}@topfaith.edu.ng`,
+        const data = JSON.stringify(
+            {
+                "email": `${studentNo}@topfaith.edu.ng`,
+                "role": "MEMBER"
+            }
+        );
+        //making sure that the regnumber is a digit
+        if (!isNaN(parseFloat(studentNo))) {
+            try {
+                referenceYear = Math.floor(Number(studentNo) / (1 * Math.pow(10, 9 - 4))).toString();
+            } catch (e) {
+                console.log('error setting reference year')
+            }
+        }
 
-async function prepareMail(token, aData, studentNo) {
+        const optionsTrial = {
+            host: 'admin.googleapis.com',
+            path: `/admin/directory/v1/groups/${referenceYear}tustudents@topfaith.edu.ng/members`,
+
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.token}`,
+            },
+        };
+
+        const req = https2.request(optionsTrial, res => {
+            console.log(`statusCode: ${res.statusCode}`);
+
+            res.on('data', d => {
+
+
+                process.stdout.write(d);
+            });
+        });
+
+        req.on('error', error => {
+            console.error(error);
+        });
+
+        req.write(data);
+        // joinedEmailsGroup.push(aData.studentNo)
+        req.end();
+        // return 1;
+        // if (i+1 === sizeOfArray) {groupDone = true;}
+
+    }
+    catch (err) {
+        console.log('error add2groups')
+        // return 0
+    }
+}
+
+async function add2groupsParent(studentNo, reques) {
+    const AA = [null]
+    try {
+        if (reques[0].status == 1) {
+            console.log('trying to get token...')
+            requestWithRetry().then(results => {
+                AA[0] = results
+                // console.log('AA0::', AA[0])
+                console.log('success::')
+            })
+
+        }
+        else {AA[0] = reques[0].A}
+        await waitforme(2000)
+        await add2groupstrial(AA[0], studentNo)
+        // await prepareMail(AA[0], aData, studentNo );
+        return [1, AA[0]]
+    }
+    catch (error) {
+        console.log('CATCH ERROR- Add groups parent')
+        return [0]
+    }
+}
+
+async function prepareMail(token, aData) {
     try {
         const data = JSON.stringify(aData);
-        console.log('@PREPAREMAIL-THIS IS TOKEN', token.res.data.access_token)
-        //console.log('THIS IS FULL TOKEN', token)
+        // console.log('@PREPAREMAIL-THIS IS TOKEN', token.res.data.access_token)
+        // 'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
+        // console.log('THIS IS FULL TOKEN', token)
         const options = {
             host: 'admin.googleapis.com',
             path: '/admin/directory/v1/users',
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
+                'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.token}`,
             },
         };
 
@@ -745,13 +975,17 @@ async function requestWithRetry () {
     const MAX_RETRIES = 3;
     for (let i = 0; i <= MAX_RETRIES; i++) {
         try {
-            return await oAuth2Client1.getAccessToken()
+            console.log('in request with retry')
+            return await oAuth2Client1.getAccessToken();
         } catch (err) {
             const timeout = Math.pow(2, i);
             console.log('Waiting', timeout, 'ms');
             await waitforme(timeout);
             console.log('Retrying', err.message, i);
         }
+        // finally {
+        //     break;
+        // }
     }
 }
 
@@ -840,12 +1074,14 @@ app.get('/create-emails2', async (req, res) => {
     const studentData = [
         {studentNo:'test001', firstName: 'T1', middleName: 'TM', lastName:'TL'},
         {studentNo:'test002', firstName: 'T1', middleName: 'TM', lastName:'TL'},
-        {studentNo:'test003', firstName: 'T1', middleName: 'TM', lastName:'TL'},
-        {studentNo:'test004', firstName: 'T1', middleName: 'TM', lastName:'TL'},
-        {studentNo:'test005', firstName: 'T1', middleName: 'TM', lastName:'TL'}
+        // {studentNo:'test003', firstName: 'T1', middleName: 'TM', lastName:'TL'},
+        // {studentNo:'test004', firstName: 'T1', middleName: 'TM', lastName:'TL'},
+        // {studentNo:'test005', firstName: 'T1', middleName: 'TM', lastName:'TL'}
     ]
     const success = [];
     const failures = [];
+    const successGp = [];
+    const failuresGp = [];
     let timeout = 30; //seconds
     console.log("start:" + new Date());
     let start = Number(Date.now());
@@ -885,24 +1121,63 @@ app.get('/create-emails2', async (req, res) => {
         console.log('It ran')
 
         const myNow = Number(Date.now())
-        if (myNow >= end || i == 0 || requestMarker[0].A == null ){
+        if (myNow >= end || i == 0 || requestMarker[0].A == null || requestMarker[0].A == undefined){
+            console.log('In first-myNow')
             end = myNow + timeout * 1000;
             requestMarker[0].status = 1
         }
-        else {requestMarker[0].status = 0}
-        const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
-        if (answer[0] === 1) {
-            success.push(studentData[i].studentNo)
-            requestMarker[0].A = answer[1]
+        else {
+            requestMarker[0].status = 0
+            console.log('In else-myNow')
         }
-        else if (answer[0] == 0){failures.push(studentData[i].studentNo)}
+        // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
+        createMailAccount(obj, studentData[i].studentNo, requestMarker).then(answer => {
+            if (answer[0] === 1) {
+                success.push(studentData[i].studentNo)
+                requestMarker[0].A = answer[1]
+                console.log('requestMarker after success @CreatMailLoop::', requestMarker)
+            }
+            else if (answer[0] === 0){failures.push(studentData[i].studentNo)}
+        });
+
+
         await waitforme(4000);
     }
+    await waitforme(4000);
+    let start2 = Number(Date.now());
+    let end2 = start2 + timeout * 1000;
+    let requestMarker2 = [{status: 0, A: null}]
+    for (let j = 0; j < success.length ; j++) {
+        const studData = success[j];
+        console.log('@groups, It ran', studData)
 
+        const myNow2 = Number(Date.now())
+        if (myNow2 >= end2 || j == 0 || requestMarker2[0].A == null || requestMarker2[0].A == undefined){
+            console.log('@groups,In first-myNow')
+            end2 = myNow2 + timeout * 1000;
+            requestMarker2[0].status = 1
+        }
+        else {
+            requestMarker2[0].status = 0
+            console.log('@groups,In else-myNow')
+        }
+        // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
+        add2groupsParent( studData, requestMarker2 ).then(answer => {
+            console.log('requestMarker after  @add2groupsParentLoop::', requestMarker2)
+            if (answer[0] === 1) {
+                successGp.push(studData)
+                requestMarker2[0].A = answer[1]
+            }
+            else if (answer[0] == 0){failuresGp.push(studData)}
+        });
+
+
+        await waitforme(4000);
+    }
 // console.log('\nXXXXXGeneratedEmailsList::XXXX\n',createdEmails  );
 
 res.status(201).json({
-    message: "student  email created successfully", status: 201, data: [success,failures]
+    message: "student  email created successfully", status: 201, data: [success,failures,successGp,failuresGp]
 
 });
 
