@@ -695,32 +695,27 @@ async function onEmailDataSent(req,res) {
 
         }
 
-        // console.log('It ran')
-
         const myNow = Number(Date.now())
-        if (myNow >= end || i == 0 || requestMarker[0].A == null || requestMarker[0].A == undefined){
-            console.log('In first-myNow')
+        if (myNow >= end || i === 0 || requestMarker[0].A == null || requestMarker[0].A === undefined){
             end = myNow + timeout * 1000;
             requestMarker[0].status = 1
         }
         else {
             requestMarker[0].status = 0
-            console.log('In else-myNow')
         }
         // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
         createMailAccount(obj, studentData[i].studentNo, requestMarker).then(answer => {
             if (answer[0] === 1) {
                 success.push(studentData[i].studentNo)
                 requestMarker[0].A = answer[1]
-                console.log('requestMarker after success @CreatMailLoop::', requestMarker)
             }
             else if (answer[0] == 0){failures.push(studentData[i].studentNo)}
         });
 
 
-        await waitforme(4000);
+        await waitforme(3000);
     }
-    await waitforme(4000);
+    await waitforme(1000);
     let start2 = Number(Date.now());
     let end2 = start + timeout * 1000;
     let requestMarker2 = [{status: 0, A: null}]
@@ -729,14 +724,12 @@ async function onEmailDataSent(req,res) {
         console.log('@groups, It ran', studData)
 
         const myNow2 = Number(Date.now())
-        if (myNow2 >= end2 || j == 0 || requestMarker2[0].A == null || requestMarker2[0].A == undefined){
-            console.log('@groups,In first-myNow')
+        if (myNow2 >= end2 || j === 0 || requestMarker2[0].A === null || requestMarker2[0].A === undefined){
             end2 = myNow2 + timeout * 1000;
             requestMarker2[0].status = 1
         }
         else {
             requestMarker2[0].status = 0
-            console.log('@groups,In else-myNow')
         }
         // const {answer} = await createMailAccount(obj, studentData[i].studentNo, requestMarker);
         add2groupsParent( studData, requestMarker2 ).then(answer => {
@@ -745,11 +738,11 @@ async function onEmailDataSent(req,res) {
                 successGp.push(studData)
                 requestMarker2[0].A = answer[1]
             }
-            else if (answer[0] == 0){failuresGp.push(studData)}
+            else if (answer[0] === 0){failuresGp.push(studData)}
         });
 
 
-        await waitforme(4000);
+        await waitforme(3000);
     }
 
     res.status(201).json({
@@ -799,7 +792,6 @@ async function joinMailGroups(aStudentData) {
 
 async function add2groups(token, aData) {
     try {
-        // "email": `${aData.studentNo}@topfaith.edu.ng`,
         const data = JSON.stringify(
             {
                 "email": `${aData.studentNo}@topfaith.edu.ng`,
@@ -847,7 +839,6 @@ async function add2groups(token, aData) {
 async function add2groupstrial(token, studentNo) {
       let referenceYear = new Date().getFullYear().toString();
     try {
-        // "email": `${aData.studentNo}@topfaith.edu.ng`,
         const data = JSON.stringify(
             {
                 "email": `${studentNo}@topfaith.edu.ng`,
@@ -907,7 +898,6 @@ async function add2groupsParent(studentNo, reques) {
             console.log('trying to get token...')
             requestWithRetry().then(results => {
                 AA[0] = results
-                // console.log('AA0::', AA[0])
                 console.log('success::')
             })
 
@@ -915,7 +905,6 @@ async function add2groupsParent(studentNo, reques) {
         else {AA[0] = reques[0].A}
         await waitforme(2000)
         await add2groupstrial(AA[0], studentNo)
-        // await prepareMail(AA[0], aData, studentNo );
         return [1, AA[0]]
     }
     catch (error) {
@@ -927,9 +916,7 @@ async function add2groupsParent(studentNo, reques) {
 async function prepareMail(token, aData) {
     try {
         const data = JSON.stringify(aData);
-        // console.log('@PREPAREMAIL-THIS IS TOKEN', token.res.data.access_token)
-        // 'Content-Type': 'application/json', 'Content-Length': data.length, 'Authorization': `Bearer ${token.res.data.access_token}`,
-        // console.log('THIS IS FULL TOKEN', token)
+
         const options = {
             host: 'admin.googleapis.com',
             path: '/admin/directory/v1/users',
@@ -1069,7 +1056,7 @@ app.get('/auth/callback', async (req, res) => {
     }
 });
 
-
+//test for the latest email creation
 app.get('/create-emails2', async (req, res) => {
     const studentData = [
         {studentNo:'test001', firstName: 'T1', middleName: 'TM', lastName:'TL'},
