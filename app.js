@@ -8,6 +8,8 @@ const {google} = require ('googleapis')
 const neo4j = require('neo4j-driver');
 const fileUpload = require('express-fileupload');
 const { OAuth2Client } = require('google-auth-library');
+const jwt = require ('jsonwebtoken');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 
@@ -33,6 +35,7 @@ CLIENT_SECRET = ''
 const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
 REFRESH_TOKEN =
     ''
+PAYSTACK_SECRET = "";
 try {
 
     uri = process.env.URI;
@@ -41,7 +44,7 @@ try {
     CLIENT_ID = process.env.CLIENT_ID ;
     CLIENT_SECRET =  process.env.CLIENT_SECRET ;
     REFRESH_TOKEN =  process.env.REFRESH_TOKEN ;
-
+    PAYSTACK_SECRET = process.env.PAYSTACK_SECRET;
     console.log("===========")
     console.log("Done reading settings variables", uri, user);
     console.log("===========")
@@ -301,10 +304,22 @@ async function onDBWrite(req, res) {
         }
 
 }
+async function runFindQuery(query, option) {
+    const driver = await DBLogin()
+    // let gLoggedInLocal = false
+    let answer = []
+    if (driver) {
+        answer = await findQuery(driver,query,'em', option)
+        return answer
+    }
+    else {return 0}
+
+
+}
 
 app.route('/api/db-read').get(onDBRead)
 async function onDBRead(req, res) {
-    gLoggedInLocal = false
+    let gLoggedInLocal = false
     //console.log("Received query req::",req )
     const query = decodeURIComponent(req.query.queries)
     const option = req.query.option
@@ -437,6 +452,7 @@ async function findQuery(driver, readQuery,username, option) {
         // const a = readResult.records[0].toObject();
         // console.log("a==", (JSON.stringify(a))['properties'])
         let aa = []
+        // const answer = [];
         let count = 0
         if (option === '1') {
          readResult.records.map(record => {
@@ -460,20 +476,25 @@ async function findQuery(driver, readQuery,username, option) {
     
         }
         else if (option === '2') {
+            console.log('options 2 ')
+            // console.log('readssult',readResult);
             readResult.records.map(record => {
-                const answer = []
+
+                 count = 0
+                // console.log('recordkeys::',record.keys);
                 if (record.keys.length > 1) {
-                for (r in record.keys) {
+                for (let r in record.keys) {
                     // console.log('this is keys::', r)
                     const node = record.get(record.keys[r])
+                    console.log('node::', node.properties);
                     answer.push(node.properties)
-
+                    if ( count=== 0 ) {console.log('record::', record)}
+                    count += 1;
                 }
                 // const keysAvailable = record.keys[0]
-                if ( count=== 0 ) {console.log('record::', answer)}
                 // const node = record.get(keysAvailable)
                 // if ( count=== 0 ) {console.log('node::', node.properties)}
-                // count += 1
+
 
                 
                 // console.log('node::', node)
@@ -483,27 +504,31 @@ async function findQuery(driver, readQuery,username, option) {
                 else {
                     const keysAvailable = record.keys[0]
                     const node = record.get(keysAvailable).properties
-                    if ( count=== 0 ) {console.log('node::', node)}
+                    if ( count=== 0 ) {console.log('nodeXX::', node)}
                     count += 1
 
             // return node.properties
-                    return node
+                    answer.push(node);
+                    // return node
                 }
 
     
             });
-            aa = aa_temp
+            // aa = aa_temp
         
             }
         else {
+            let aRec = null
             readResult.records.map(record => {
-                const rec = record._fields
+                // const rec = record._fields
+                aRec = record._fields
                 // console.log('rec. ::', rec)
                 // const rec2 = record['_fields']
-                if ( count=== 0 ) {console.log('node::', rec)}
+                if ( count=== 0 ) {console.log('node::', aRec)}
                 count += 1
                 // console.log('rec2. ::', rec2)
-                return rec
+                answer = aRec;
+                return aRec
             })
             // console.log("aa_else::", aa)
             // aa = aa_temp
@@ -511,7 +536,7 @@ async function findQuery(driver, readQuery,username, option) {
         }
         // console.log("aa::", aa)
         
-        answer = aa
+        // answer = aa
     } catch (error) {
         console.error(`Something went wrong: ${error}`);
         // return answer
@@ -1172,4 +1197,91 @@ res.status(201).json({
 
 });
 
+app.route('/api/create-virtual-accounts').post(onVirtualAccountDataSent)
+async function onVirtualAccountDataSent(req,res) {
+    const studentData = req.body;
+    for (let i = 0; i < studentData.length ; i++) {
+        await createPaystackCustomer((studentData)).then(result => {
+            if (result == 1) {
+            //    customer creation was successful
 
+            }
+        })
+
+    }
+
+}
+
+async function createPaystackCustomer(studentData) {
+    const https = require('https')
+    try {
+        const params = JSON.stringify({
+            "email": studentData.email,
+            "first_name": studentData.firstName,
+            "last_name": studentData.lastName,
+            "phone": studentData.phone
+        })
+
+        const options = {
+            hostname: 'api.paystack.co',
+            port: 443,
+            path: '/customer',
+            method: 'POST',
+            headers: {
+                Authorization: PAYSTACK_SECRET,
+                'Content-Type': 'application/json'
+            }
+        }
+
+        const req = https.request(options, res => {
+            let data = ''
+
+            res.on('data', (chunk) => {
+                data += chunk
+            });
+
+            res.on('end', () => {
+                console.log(JSON.parse(data))
+            })
+        }).on('error', error => {
+            console.error(error)
+        })
+
+        req.write(params)
+        req.end()
+        return 1
+
+    }
+
+    catch (e) {
+        console.log(`error creating student- ${studentData.lastName} data::`, e)
+        return 0
+    }
+
+}
+
+async function createVirtualAccount(studentData) {}
+
+async function findUser(username) {
+    const query = `match (a:User) where a.staffID = '${username}' and a.isActive = true return a`;
+    console.log('query', query);
+    const user = await runFindQuery(query,'2')
+    console.log('user@findUser::', user);
+    return user;
+
+}
+app.get('/api/login', async (req, res) => {
+    console.log('username', req.query.username);
+    const user =  await findUser(req.query.username);
+    if (!user) {
+        return res.status(400).send ('the user not found')
+    }
+
+    if (user && bcrypt.compareSync(req.query.username, user.passwordHash)) {
+        res.status(200).send('user Authenticated');
+    }
+    else {
+        res.status(400).send('password is wrong');
+    }
+
+});
