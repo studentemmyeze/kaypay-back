@@ -519,6 +519,7 @@ async function findQuery(driver, readQuery,username, option) {
             }
         else {
             let aRec = null
+
             readResult.records.map(record => {
                 // const rec = record._fields
                 aRec = record._fields
@@ -527,8 +528,9 @@ async function findQuery(driver, readQuery,username, option) {
                 if ( count=== 0 ) {console.log('node::', aRec)}
                 count += 1
                 // console.log('rec2. ::', rec2)
-                answer = aRec;
-                return aRec
+                // answer = aRec;
+                // return aRec
+                answer.push(aRec);
             })
             // console.log("aa_else::", aa)
             // aa = aa_temp
