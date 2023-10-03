@@ -486,7 +486,7 @@ async function findQuery(driver, readQuery,username, option) {
                 for (let r in record.keys) {
                     // console.log('this is keys::', r)
                     const node = record.get(record.keys[r])
-                    console.log('node::', node.properties);
+                    // console.log('node::', node.properties);
                     answer.push(node.properties)
                     if ( count=== 0 ) {console.log('record::', record)}
                     count += 1;
