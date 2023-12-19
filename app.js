@@ -555,6 +555,25 @@ async function findQuery(driver, readQuery,username, option) {
 
 
 // this backend should do send of email to students
+app.route('/api/send-bills').post(onDetailSent)
+async function onDetailSent(req, res) {
+    issues = false;
+    date_start = new Date();
+    sendBillStatus = "pending"
+    const emailData = req.body;
+    console.log('this is emailData', emailData);
+    const message = emailData[0];
+    const myData = emailData[1];
+    console.log('message::', message);
+    console.log('data::', data);
+
+    res.status(201).json({
+        message: "bills  email sent successfully", status: 201, data: []
+
+    });
+}
+
+
 
 // this backend should do create student emails
 app.route('/api/actions_gen_email').post(onEmailDataSent)
