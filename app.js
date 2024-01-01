@@ -601,7 +601,7 @@ async function readTheExcelFromWebsite(resource){
 }
 
 // this backend should get student application and send results to the main application
-app.route('/api/get-applications').post(onGetApplication)
+app.route('/api/get-applications').get(onGetApplication)
 async function onGetApplication(req, res) {
     // const emailData = req.body;
     // const resource = req.body;
