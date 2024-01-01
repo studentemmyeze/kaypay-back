@@ -560,7 +560,7 @@ async function readTheExcelFromWebsite(resource){
         }
     }
 
-    http.get(resource, (res) => {
+    https.get(resource, (res) => {
         const { statusCode } = res;
         const contentType = res.headers['content-type'];
 
