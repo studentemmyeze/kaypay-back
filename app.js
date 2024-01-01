@@ -595,19 +595,22 @@ async function readTheExcelFromWebsite(resource){
 
 
         // res.setEncoding('utf8');
-        // let rawData = '';
+        let rawData = [];
         res.on('data', (chunk) => {
             // rawData += chunk;
-           console.log(chunk);
+            console.log('..getting chunk')
+            const data = new Uint8Array(chunk);
+            rawData = data;
+           // console.log(chunk);
 
         });
-        res.on('end', (adata) => {
+        res.on('end', () => {
             try {
-                const data = new Uint8Array(adata);
-                console.log('ARRAYB:::', data);
+                // const data = new Uint8Array(adata);
+                console.log('ARRAYB:::', rawData);
                 // var arr = new Array();
                 const arr = [];
-                for(let i = 0; i !== data.length; ++i) {arr[i] = String.fromCharCode(data[i]);}
+                for(let i = 0; i !== rawData.length; ++i) {arr[i] = String.fromCharCode(rawData[i]);}
                 let bstr = arr.join("");
                 // console.log('bstr::', bstr);
                 let workbook = XLSX.read(bstr, {type:"binary"});
