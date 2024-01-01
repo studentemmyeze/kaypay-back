@@ -597,7 +597,7 @@ async function readTheExcelFromWebsite(resource){
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' +
                 `Status Code: ${statusCode}`);
-        } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
+        } else if (!/^application\/arraybuffer/.test(contentType)) {
             error = new Error('Invalid content-type.\n' +
                 `Expected application/openxmlformats-officedocument but received ${contentType}`);
         }
@@ -631,8 +631,9 @@ async function readTheExcelFromWebsite(resource){
 
         });
         console.log('..done with CHUNK')
-        res.on('end', () => {
+        res.on('end', (check) => {
             try {
+                console.log('CHECK::', check);
                 // const data = new Uint8Array(adata);
                 console.log('ARRAYB:::', rawData);
                 // var arr = new Array();
@@ -668,9 +669,11 @@ async function onGetApplication(req, res) {
     // const resource = req.body;
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     console.log('resource;:', resource);
-    const myanswer = await readTheExcelFromWebsite2(resource);
-    console.log('myanswer;:', myanswer);
+
     try {
+        const myanswer = await readTheExcelFromWebsite2(resource);
+        console.log('myanswer;:', myanswer);
+        // setTimeout(5000);
         const answer = await readTheExcelFromWebsite(resource);
         console.log('applications result::', answer);
         if  (answer && answer.length > 0) {
