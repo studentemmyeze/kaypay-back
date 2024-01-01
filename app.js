@@ -10,6 +10,7 @@ const fileUpload = require('express-fileupload');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require ('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const XLSX = require("xlsx");
 require('dotenv').config();
 
 
@@ -570,10 +571,12 @@ async function readTheExcelFromWebsite(resource){
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' +
                 `Status Code: ${statusCode}`);
-        } else if (!/^application\/json/.test(contentType)) {
+        } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
             error = new Error('Invalid content-type.\n' +
-                `Expected application/json but received ${contentType}`);
+                `Expected application/openxmlformats-officedocument but received ${contentType}`);
         }
+
+        // application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         if (error) {
             console.error(error.message);
             // Consume response data to free up memory
@@ -581,9 +584,30 @@ async function readTheExcelFromWebsite(resource){
             return;
         }
 
-        res.setEncoding('utf8');
-        let rawData = '';
-        res.on('data', (chunk) => { rawData += chunk; });
+
+        const data = new Uint8Array(res);
+        console.log('ARRAYB:::', data);
+        // var arr = new Array();
+        const arr = [];
+        for(let i = 0; i !== data.length; ++i) {arr[i] = String.fromCharCode(data[i]);}
+        let bstr = arr.join("");
+        // console.log('bstr::', bstr);
+        let workbook = XLSX.read(bstr, {type:"binary"});
+        let first_sheet_name = workbook.SheetNames[0];
+        let worksheet = workbook.Sheets[first_sheet_name];
+
+        let arraylist = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+
+
+
+
+
+
+
+
+        // res.setEncoding('utf8');
+        // let rawData = '';
+        // res.on('data', (chunk) => { rawData += chunk; });
         res.on('end', () => {
             try {
                 const parsedData = JSON.parse(rawData);
