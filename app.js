@@ -552,6 +552,31 @@ async function findQuery(driver, readQuery,username, option) {
     
 }
 
+async function readTheExcelFromWebsite2(resource){
+    var url = resource;
+
+    /* set up async GET request */
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "arraybuffer";
+
+    req.onload = function(e) {
+        var workbook = XLSX.read(req.response);
+
+
+        /* DO SOMETHING WITH workbook HERE */
+        let first_sheet_name = workbook.SheetNames[0];
+        let worksheet = workbook.Sheets[first_sheet_name];
+
+        let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+
+
+        console.log(parsedData);
+
+        return parsedData;
+    };
+}
+
 async function readTheExcelFromWebsite(resource){
     const options = {
         hostname: resource,
@@ -595,7 +620,7 @@ async function readTheExcelFromWebsite(resource){
 
 
         // res.setEncoding('utf8');
-        let rawData = [];
+        let rawData ;
         res.on('data', (chunk) => {
             // rawData += chunk;
             console.log('..getting chunk')
@@ -604,6 +629,7 @@ async function readTheExcelFromWebsite(resource){
            // console.log(chunk);
 
         });
+        console.log('..done with CHUNK')
         res.on('end', () => {
             try {
                 // const data = new Uint8Array(adata);
@@ -641,6 +667,8 @@ async function onGetApplication(req, res) {
     // const resource = req.body;
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     console.log('resource;:', resource);
+    const myanswer = await readTheExcelFromWebsite2(resource);
+    console.log('myanswer;:', myanswer);
     try {
         const answer = await readTheExcelFromWebsite(resource);
         console.log('applications result::', answer);
