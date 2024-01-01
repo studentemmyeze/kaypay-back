@@ -597,7 +597,7 @@ async function readTheExcelFromWebsite(resource){
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' +
                 `Status Code: ${statusCode}`);
-        } else if (!/^application\/arraybuffer/.test(contentType)) {
+        } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
             error = new Error('Invalid content-type.\n' +
                 `Expected application/openxmlformats-officedocument but received ${contentType}`);
         }
