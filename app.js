@@ -671,10 +671,10 @@ async function onGetApplication(req, res) {
     console.log('resource;:', resource);
 
     try {
-        const myanswer = await readTheExcelFromWebsite2(resource);
-        console.log('myanswer;:', myanswer);
+        const answer = await readTheExcelFromWebsite2(resource);
+        console.log('myanswer;:', answer);
         // setTimeout(5000);
-        const answer = await readTheExcelFromWebsite(resource);
+        // const answer = await readTheExcelFromWebsite(resource);
         console.log('applications result::', answer);
         if  (answer && answer.length > 0) {
             res.status(200).json({
