@@ -11,6 +11,7 @@ const { OAuth2Client } = require('google-auth-library');
 const jwt = require ('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const XLSX = require("xlsx");
+var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 require('dotenv').config();
 
 
