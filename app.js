@@ -551,6 +551,89 @@ async function findQuery(driver, readQuery,username, option) {
     
 }
 
+async function readTheExcelFromWebsite(resource){
+    const options = {
+        hostname: resource,
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/arraybuffer'
+        }
+    }
+
+    http.get(resource, (res) => {
+        const { statusCode } = res;
+        const contentType = res.headers['content-type'];
+
+        let error;
+        // Any 2xx status code signals a successful response but
+        // here we're only checking for 200.
+        if (statusCode !== 200) {
+            error = new Error('Request Failed.\n' +
+                `Status Code: ${statusCode}`);
+        } else if (!/^application\/json/.test(contentType)) {
+            error = new Error('Invalid content-type.\n' +
+                `Expected application/json but received ${contentType}`);
+        }
+        if (error) {
+            console.error(error.message);
+            // Consume response data to free up memory
+            res.resume();
+            return;
+        }
+
+        res.setEncoding('utf8');
+        let rawData = '';
+        res.on('data', (chunk) => { rawData += chunk; });
+        res.on('end', () => {
+            try {
+                const parsedData = JSON.parse(rawData);
+                console.log(parsedData);
+                return parsedData;
+            } catch (e) {
+                console.error(e.message);
+                return [];
+            }
+        });
+    }).on('error', (e) => {
+        console.error(`Got error: ${e.message}`);
+        return [];
+    });
+}
+
+// this backend should get student application and send results to the main application
+app.route('/api/get-applications').post(onGetApplication)
+async function onGetApplication(req, res) {
+    // const emailData = req.body;
+    // const resource = req.body;
+    const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    console.log('resource;:', resource);
+    try {
+        const answer = await readTheExcelFromWebsite(resource);
+        console.log('applications result::', answer);
+        if  (answer && answer.length > 0) {
+            res.status(200).json({
+                data: answer,
+                message: "applications found",
+                status: 200
+            });
+        }
+        else {
+            res.status(202).json({
+                message: "applications not found",
+                status: 202
+            });
+        }
+
+    }
+
+    catch (e) {
+        console.log('error @getapplications:', e);
+        res.status(500).send('Failed to get applications');
+    }
+
+
+}
+
 
 
 
@@ -565,7 +648,7 @@ async function onDetailSent(req, res) {
     const message = emailData[0];
     const myData = emailData[1];
     console.log('message::', message);
-    console.log('data::', data);
+    console.log('data::', myData);
 
     res.status(201).json({
         message: "bills  email sent successfully", status: 201, data: []
