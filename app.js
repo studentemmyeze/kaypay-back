@@ -585,18 +585,7 @@ async function readTheExcelFromWebsite(resource){
         }
 
 
-        const data = new Uint8Array(res);
-        console.log('ARRAYB:::', data);
-        // var arr = new Array();
-        const arr = [];
-        for(let i = 0; i !== data.length; ++i) {arr[i] = String.fromCharCode(data[i]);}
-        let bstr = arr.join("");
-        // console.log('bstr::', bstr);
-        let workbook = XLSX.read(bstr, {type:"binary"});
-        let first_sheet_name = workbook.SheetNames[0];
-        let worksheet = workbook.Sheets[first_sheet_name];
 
-        let arraylist = XLSX.utils.sheet_to_json(worksheet,{raw:true});
 
 
 
@@ -607,11 +596,29 @@ async function readTheExcelFromWebsite(resource){
 
         // res.setEncoding('utf8');
         // let rawData = '';
-        // res.on('data', (chunk) => { rawData += chunk; });
-        res.on('end', () => {
+        res.on('data', (chunk) => {
+            // rawData += chunk;
+           console.log(chunk);
+
+        });
+        res.on('end', (adata) => {
             try {
-                const parsedData = JSON.parse(rawData);
+                const data = new Uint8Array(adata);
+                console.log('ARRAYB:::', data);
+                // var arr = new Array();
+                const arr = [];
+                for(let i = 0; i !== data.length; ++i) {arr[i] = String.fromCharCode(data[i]);}
+                let bstr = arr.join("");
+                // console.log('bstr::', bstr);
+                let workbook = XLSX.read(bstr, {type:"binary"});
+                let first_sheet_name = workbook.SheetNames[0];
+                let worksheet = workbook.Sheets[first_sheet_name];
+
+                let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+
+
                 console.log(parsedData);
+
                 return parsedData;
             } catch (e) {
                 console.error(e.message);
