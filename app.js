@@ -590,7 +590,7 @@ async function readTheExcelFromWebsite(resource){
     https.get(resource, (res) => {
         const { statusCode } = res;
         const contentType = res.headers['content-type'];
-
+        console.log('content type::', contentType);
         let error;
         // Any 2xx status code signals a successful response but
         // here we're only checking for 200.
@@ -671,10 +671,10 @@ async function onGetApplication(req, res) {
     console.log('resource;:', resource);
 
     try {
-        const answer = await readTheExcelFromWebsite2(resource);
-        console.log('myanswer;:', answer);
+        // const answer = await readTheExcelFromWebsite2(resource);
+        // console.log('myanswer;:', answer);
         // setTimeout(5000);
-        // const answer = await readTheExcelFromWebsite(resource);
+        const answer = await readTheExcelFromWebsite(resource);
         console.log('applications result::', answer);
         if  (answer && answer.length > 0) {
             res.status(200).json({
