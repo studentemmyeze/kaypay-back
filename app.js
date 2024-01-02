@@ -641,7 +641,7 @@ async function readTheExcelFromWebsite(resource){
                 console.log('buffer:::', buffer);
                 // var arr = new Array();
                 const arr = [];
-                for(let i = 0; i !== rawData.length; ++i) {arr[i] = String.fromCharCode(rawData[i]);}
+                for(let i = 0; i !== buffer.length; ++i) {arr[i] = String.fromCharCode(buffer[i]);}
                 let bstr = arr.join("");
                 // console.log('bstr::', bstr);
                 let workbook = XLSX.read(bstr, {type:"binary"});
