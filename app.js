@@ -669,7 +669,7 @@ async function readTheExcelFromWebsite(resource){
 // this backend should get student application and send results to the main application
 app.route('/api/get-applications').get(onGetApplication)
 
-async function onGetApplication2(req, res) {
+async function onGetApplication(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
 
@@ -689,11 +689,42 @@ async function onGetApplication2(req, res) {
                 console.log('buffer::', buffer);
 
                 // Set response headers for Excel download
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                // res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 // res.setHeader('Content-Disposition', 'attachment; filename=downloaded-excel-file.xlsx');
 
                 // Send the Excel file content as the response
-                res.send(buffer);
+
+                console.log('buffer:::', buffer);
+                // var arr = new Array();
+                const arr = [];
+                for(let i = 0; i !== buffer.length; ++i) {arr[i] = String.fromCharCode(buffer[i]);}
+                let bstr = arr.join("");
+                // console.log('bstr::', bstr);
+                let workbook = XLSX.read(bstr, {type:"binary"});
+                let first_sheet_name = workbook.SheetNames[0];
+                let worksheet = workbook.Sheets[first_sheet_name];
+
+                let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+
+
+                console.log('parsedData gotten::');
+
+
+
+
+                if  (parsedData && parsedData.length > 0) {
+                    res.status(200).json({
+                        data: JSON.stringify(parsedData),
+                        message: "applications found",
+                        status: 200
+                    });
+                }
+                else if (parsedData && parsedData.length === 0){
+                    res.status(202).json({
+                        message: "applications not found",
+                        status: 202
+                    });
+                }
             });
         });
     } catch (error) {
@@ -701,7 +732,7 @@ async function onGetApplication2(req, res) {
         res.status(500).send('Internal Server Error');
     }
 }
-async function onGetApplication(req, res) {
+async function onGetApplication2(req, res) {
     // const emailData = req.body;
     // const resource = req.body;
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
