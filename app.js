@@ -669,7 +669,7 @@ async function readTheExcelFromWebsite(resource){
 // this backend should get student application and send results to the main application
 app.route('/api/get-applications').get(onGetApplication)
 
-async function onGetApplication(req, res) {
+async function onGetApplication2(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
 
@@ -701,7 +701,7 @@ async function onGetApplication(req, res) {
         res.status(500).send('Internal Server Error');
     }
 }
-async function onGetApplication2(req, res) {
+async function onGetApplication(req, res) {
     // const emailData = req.body;
     // const resource = req.body;
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
@@ -713,7 +713,7 @@ async function onGetApplication2(req, res) {
             (answer) => {
                 if  (answer && answer.length > 0) {
                     res.status(200).json({
-                        data: answer,
+                        data: JSON.stringify(answer),
                         message: "applications found",
                         status: 200
                     });
