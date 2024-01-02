@@ -703,7 +703,7 @@ async function readExcelOnline(excelUrl) {
 
         // Iterate through rows and columns
         const records = [];
-        worksheet.eachRow({ includeEmpty: false }, (row) => {
+        worksheet.eachRow({ includeEmpty: true }, (row) => {
             records.push(row.values);
         });
 
