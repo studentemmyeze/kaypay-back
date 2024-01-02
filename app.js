@@ -673,7 +673,10 @@ async function onGetApplication(req,res) {
     try {
         // URL of the Excel file online
         const excelUrl = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
-
+        const todaysDate = new Date()
+        const currentYear = todaysDate.getFullYear();
+        const currentDay = todaysDate.getDate();
+        const currentMonth = todaysDate.getMonth();
         // Make an HTTP request to get the Excel file
         https.get(excelUrl, (response) => {
             const chunks = [];
@@ -686,10 +689,9 @@ async function onGetApplication(req,res) {
             // On end, concatenate the chunks and send the Excel file content as the response
             response.on('end', () => {
                 const buffer = Buffer.concat(chunks);
-
                 // Set response headers for Excel download
                 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                // res.setHeader('Content-Disposition', 'attachment; filename=downloaded-excel-file.xlsx');
+                res.setHeader('Content-Disposition', `attachment; filename=${currentYear}-${currentMonth}-${currentDay}-application-forms.xlsx`);
 
                 // Send the Excel file content as the response
                 res.send(buffer);
