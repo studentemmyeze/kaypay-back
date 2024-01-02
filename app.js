@@ -13,6 +13,7 @@ const bcrypt = require('bcrypt');
 const XLSX = require("xlsx");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 require('dotenv').config();
+const ExcelJS = require('exceljs');
 
 
 
@@ -666,9 +667,83 @@ async function readTheExcelFromWebsite(resource){
     });
 }
 
+// Function to download the Excel file
+function downloadExcelFile(url) {
+    return new Promise((resolve, reject) => {
+        https.get(url, (response) => {
+            const chunks = [];
+
+            response.on('data', (chunk) => {
+                chunks.push(chunk);
+            });
+
+            response.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                resolve(buffer);
+            });
+
+            response.on('error', (error) => {
+                reject(error);
+            });
+        });
+    });
+}
+
+async function readExcelOnline(excelUrl) {
+    try {
+        // Download the Excel file
+        const excelData = await downloadExcelFile(excelUrl);
+
+        // Load the Excel file into a workbook
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(excelData);
+
+        // Assuming your data is in the first sheet
+        const worksheet = workbook.getWorksheet(1);
+
+        // Iterate through rows and columns
+        const records = [];
+        worksheet.eachRow({ includeEmpty: false }, (row) => {
+            records.push(row.values);
+        });
+
+        console.log('Entire Records:', records.length);
+        return records;
+    } catch (error) {
+        console.error('Error reading Excel file:', error.message);
+        return error;
+    }
+}
 // this backend should get student application and send results to the main application
 app.route('/api/get-applications').get(onGetApplication)
 
+
+async function onGetApplication(req,res) {
+    const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    try {
+        await readExcelOnline(resource).then((parsedData)=> {
+            if  (parsedData && parsedData.length > 0) {
+                res.status(200).json({
+                    data: parsedData,
+                    message: "applications found",
+                    status: 200
+                });
+            }
+            else if (parsedData && parsedData.length === 0){
+                res.status(202).json({
+                    message: "applications not found",
+                    status: 202
+                });
+            }
+
+        })
+
+    } catch (error) {
+        console.error('Error downloading Excel file:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+
+}
 async function onGetApplication_inprogress(req,res) {
     try {
         // URL of the Excel file online
@@ -703,7 +778,7 @@ async function onGetApplication_inprogress(req,res) {
     }
 }
 
-async function onGetApplication(req, res) {
+async function onGetApplication__(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
 
