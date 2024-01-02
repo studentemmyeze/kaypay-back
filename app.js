@@ -669,7 +669,7 @@ async function readTheExcelFromWebsite(resource){
 // this backend should get student application and send results to the main application
 app.route('/api/get-applications').get(onGetApplication)
 
-async function onGetApplication(req,res) {
+async function onGetApplication_inprogress(req,res) {
     try {
         // URL of the Excel file online
         const excelUrl = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
@@ -703,7 +703,7 @@ async function onGetApplication(req,res) {
     }
 }
 
-async function onGetApplication__(req, res) {
+async function onGetApplication(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
 
