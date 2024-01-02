@@ -685,7 +685,7 @@ async function onGetApplication(req, res) {
             // On end, concatenate the chunks and send the Excel file content as the response
             response.on('end', () => {
                 const buffer = Buffer.concat(chunks);
-
+                waitforme(10000);
                 console.log('buffer::', buffer);
 
                 // Set response headers for Excel download
@@ -694,7 +694,7 @@ async function onGetApplication(req, res) {
 
                 // Send the Excel file content as the response
 
-                console.log('buffer:::', buffer);
+                // console.log('buffer:::', buffer);
                 // var arr = new Array();
                 const arr = [];
                 for(let i = 0; i !== buffer.length; ++i) {arr[i] = String.fromCharCode(buffer[i]);}
