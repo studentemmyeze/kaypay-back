@@ -676,21 +676,25 @@ async function onGetApplication(req, res) {
 
     try {
 
-        const answer = await readTheExcelFromWebsite(resource);
-        // console.log('applications result::', answer[0]);
-        if  (answer && answer.length > 0) {
-            res.status(200).json({
-                data: answer,
-                message: "applications found",
-                status: 200
-            });
-        }
-        else if (answer && answer.length === 0){
-            res.status(202).json({
-                message: "applications not found",
-                status: 202
-            });
-        }
+        readTheExcelFromWebsite(resource).then(
+            (answer) => {
+                if  (answer && answer.length > 0) {
+                    res.status(200).json({
+                        data: answer,
+                        message: "applications found",
+                        status: 200
+                    });
+                }
+                else if (answer && answer.length === 0){
+                    res.status(202).json({
+                        message: "applications not found",
+                        status: 202
+                    });
+                }
+            }
+        );
+        // console.log('applications result::', answer);
+
 
     }
 
