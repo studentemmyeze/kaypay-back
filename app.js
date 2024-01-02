@@ -672,8 +672,6 @@ app.route('/api/get-applications').get(onGetApplication)
 async function onGetApplication(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
-        // URL of the Excel file online
-        // const excelUrl = 'https://example.com/path-to-your-excel-file.xlsx';
 
         // Make an HTTP request to get the Excel file
         https.get(resource, (response) => {
