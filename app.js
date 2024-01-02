@@ -597,10 +597,10 @@ async function readTheExcelFromWebsite(resource){
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' +
                 `Status Code: ${statusCode}`);
-        } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
-            error = new Error('Invalid content-type.\n' +
-                `Expected application/openxmlformats-officedocument but received ${contentType}`);
-        }
+        // } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
+        //     error = new Error('Invalid content-type.\n' +
+        //         `Expected application/openxmlformats-officedocument but received ${contentType}`);
+        // }
 
         // application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         if (error) {
@@ -621,19 +621,19 @@ async function readTheExcelFromWebsite(resource){
 
 
         // res.setEncoding('utf8');
-        let rawData ;
+        let rawData = [] ;
         res.on('data', (chunk) => {
             // rawData += chunk;
             console.log('..getting chunk')
-            const data = new Uint8Array(chunk);
-            rawData = data;
+            // const data = new Uint8Array(chunk);
+            rawData.push(data);
            // console.log(chunk);
 
         });
         console.log('..done with CHUNK')
-        res.on('end', (check) => {
+        res.on('end', () => {
             try {
-                console.log('CHECK::', check);
+                // console.log('CHECK::', check);
                 // const data = new Uint8Array(adata);
                 console.log('ARRAYB:::', rawData);
                 // var arr = new Array();
