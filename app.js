@@ -596,7 +596,7 @@ async function readTheExcelFromWebsite(resource){
         // here we're only checking for 200.
         if (statusCode !== 200) {
             error = new Error('Request Failed.\n' +
-                `Status Code: ${statusCode}`);
+                `Status Code: ${statusCode}`);}
         // } else if (!/^application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/.test(contentType)) {
         //     error = new Error('Invalid content-type.\n' +
         //         `Expected application/openxmlformats-officedocument but received ${contentType}`);
@@ -621,12 +621,12 @@ async function readTheExcelFromWebsite(resource){
 
 
         // res.setEncoding('utf8');
-        let rawData = [] ;
+        let rawData = [];
         res.on('data', (chunk) => {
             // rawData += chunk;
             console.log('..getting chunk')
             // const data = new Uint8Array(chunk);
-            rawData.push(data);
+            rawData.push(chunk);
            // console.log(chunk);
 
         });
