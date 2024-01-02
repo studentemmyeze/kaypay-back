@@ -636,6 +636,9 @@ async function readTheExcelFromWebsite(resource){
                 // console.log('CHECK::', check);
                 // const data = new Uint8Array(adata);
                 console.log('ARRAYB:::', rawData);
+                const buffer = Buffer.concat(rawData);
+                console.log("ARRAYB:::\n", rawData);
+                console.log('buffer:::', buffer);
                 // var arr = new Array();
                 const arr = [];
                 for(let i = 0; i !== rawData.length; ++i) {arr[i] = String.fromCharCode(rawData[i]);}
