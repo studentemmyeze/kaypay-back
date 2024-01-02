@@ -669,7 +669,39 @@ async function readTheExcelFromWebsite(resource){
 // this backend should get student application and send results to the main application
 app.route('/api/get-applications').get(onGetApplication)
 
-async function onGetApplication(req, res) {
+async function onGetApplication(req,res) {
+    try {
+        // URL of the Excel file online
+        const excelUrl = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+
+        // Make an HTTP request to get the Excel file
+        https.get(excelUrl, (response) => {
+            const chunks = [];
+
+            // Collect data chunks
+            response.on('data', (chunk) => {
+                chunks.push(chunk);
+            });
+
+            // On end, concatenate the chunks and send the Excel file content as the response
+            response.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+
+                // Set response headers for Excel download
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                // res.setHeader('Content-Disposition', 'attachment; filename=downloaded-excel-file.xlsx');
+
+                // Send the Excel file content as the response
+                res.send(buffer);
+            });
+        });
+    } catch (error) {
+        console.error('Error downloading Excel file:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+async function onGetApplication__(req, res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
 
@@ -685,7 +717,7 @@ async function onGetApplication(req, res) {
             // On end, concatenate the chunks and send the Excel file content as the response
             response.on('end', () => {
                 const buffer = Buffer.concat(chunks);
-                waitforme(10000);
+
                 console.log('buffer::', buffer);
 
                 // Set response headers for Excel download
@@ -707,7 +739,7 @@ async function onGetApplication(req, res) {
                 let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
 
 
-                console.log('parsedData gotten::');
+                console.log('parsedData gotten::', parsedData.length);
 
 
 
