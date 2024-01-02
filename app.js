@@ -652,7 +652,7 @@ async function readTheExcelFromWebsite(resource){
                 let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
 
 
-                console.log('parsedData::', parsedData);
+                console.log('parsedData gotten::');
 
                 return parsedData;
             } catch (e) {
@@ -676,7 +676,7 @@ async function onGetApplication(req, res) {
 
     try {
 
-        readTheExcelFromWebsite(resource).then(
+        await readTheExcelFromWebsite(resource).then(
             (answer) => {
                 if  (answer && answer.length > 0) {
                     res.status(200).json({
