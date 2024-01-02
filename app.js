@@ -714,7 +714,7 @@ async function onGetApplication(req, res) {
 
                 if  (parsedData && parsedData.length > 0) {
                     res.status(200).json({
-                        data: JSON.stringify(parsedData),
+                        data: parsedData,
                         message: "applications found",
                         status: 200
                     });
