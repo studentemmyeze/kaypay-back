@@ -686,6 +686,8 @@ async function onGetApplication(req, res) {
             response.on('end', () => {
                 const buffer = Buffer.concat(chunks);
 
+                console.log('buffer::', buffer);
+
                 // Set response headers for Excel download
                 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 // res.setHeader('Content-Disposition', 'attachment; filename=downloaded-excel-file.xlsx');
