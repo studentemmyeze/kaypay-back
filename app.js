@@ -633,12 +633,13 @@ async function readTheExcelFromWebsite(resource){
         console.log('..done with CHUNK')
         res.on('end', () => {
             try {
+                console.log('..done with CHUNK')
                 // console.log('CHECK::', check);
                 // const data = new Uint8Array(adata);
                 // console.log('ARRAYB:::', rawData);
                 const buffer = Buffer.concat(rawData);
                 // console.log("ARRAYB:::\n", rawData);
-                // console.log('buffer:::', buffer);
+                console.log('buffer:::', buffer);
                 // var arr = new Array();
                 const arr = [];
                 for(let i = 0; i !== buffer.length; ++i) {arr[i] = String.fromCharCode(buffer[i]);}
@@ -651,7 +652,7 @@ async function readTheExcelFromWebsite(resource){
                 let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
 
 
-                // console.log('parsedData::', parsedData);
+                console.log('parsedData::', parsedData);
 
                 return parsedData;
             } catch (e) {
