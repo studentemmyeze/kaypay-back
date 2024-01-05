@@ -794,6 +794,7 @@ async function onGetApplication(req,res) {
     try {
         await readTheExcelFromWebsite(resource).then((parsedData)=> {
             if  (parsedData && parsedData.length > 0) {
+                console.log('sending data');
                 res.status(200).json({
                     data: parsedData,
                     message: "applications found",
@@ -801,6 +802,7 @@ async function onGetApplication(req,res) {
                 });
             }
             else if (parsedData && parsedData.length === 0){
+                console.log('sending data empty');
                 res.status(202).json({
                     message: "applications not found",
                     status: 202
@@ -810,6 +812,7 @@ async function onGetApplication(req,res) {
         })
 
     } catch (error) {
+        console.log('sending error');
         console.error('Error downloading Excel file:', error.message);
         res.status(500).send('Internal Server Error');
     }
