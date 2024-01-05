@@ -11,9 +11,10 @@ const { OAuth2Client } = require('google-auth-library');
 const jwt = require ('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const XLSX = require("xlsx");
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+// var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 require('dotenv').config();
 const ExcelJS = require('exceljs');
+const fs = require('fs');
 
 
 
@@ -554,17 +555,15 @@ async function findQuery(driver, readQuery,username, option) {
     
 }
 
-async function readTheExcelFromWebsite2(resource){
-    var url = resource;
-
-    /* set up async GET request */
-    var req = new XMLHttpRequest();
-    req.open("GET", url, true);
-    req.responseType = "arraybuffer";
-
-    req.onload = function(e) {
-        var workbook = XLSX.read(req.response);
-
+async function readExcelFileFromComputer() {
+    try {
+        const todaysDate = new Date()
+        const currentYear = todaysDate.getFullYear();
+        const currentDay = todaysDate.getDate();
+        const currentMonth = todaysDate.getMonth();
+        // const resource = `${currentYear}-${currentMonth}-${currentDay}-application-forms.xlsx`;
+        const resource = 'admissions_update.xlsx';
+        const workbook = XLSX.readFile(resource);
 
         /* DO SOMETHING WITH workbook HERE */
         let first_sheet_name = workbook.SheetNames[0];
@@ -573,10 +572,79 @@ async function readTheExcelFromWebsite2(resource){
         let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
 
 
-        console.log(parsedData);
+        console.log(parsedData.length);
+        return parsedData
+    }
 
-        return parsedData;
-    };
+    catch (e) {
+        console.log('error reading excel file', e);
+        return e
+    }
+
+}
+async function downloadExcelFromWebsite(resource) {
+    try {
+        const resource2 = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+        // Specify the local file path to save the downloaded file
+        const localFilePath = 'downloaded-excel-file.xlsx'; // Replace with the desired local file path
+
+// Perform the HTTP GET request to download the file
+        const file = fs.createWriteStream(localFilePath);
+        const request = https.get(resource2, (response) => {
+            response.pipe(file);
+
+            file.on('finish', () => {
+                file.close(() => {
+                    console.log('File downloaded successfully.');
+                });
+            });
+        });
+
+        request.on('error', (error) => {
+            console.error('Error downloading file:', error.message);
+            fs.unlinkSync(localFilePath); // Delete the file if an error occurs
+        });
+
+// Handle potential errors during file writing
+        file.on('error', (error) => {
+            console.error('Error writing file:', error.message);
+            fs.unlinkSync(localFilePath); // Delete the file if an error occurs
+        });
+
+    }
+    catch(error) {console.log('issue with downloading excel', error)}
+    }
+async function readTheExcelFromWebsite3(resource){
+    var url = resource;
+    try {
+
+
+    await downloadExcelFromWebsite(resource).then(()=> {
+
+        const workbook = XLSX.readFile(resource);
+
+        /* DO SOMETHING WITH workbook HERE */
+        let first_sheet_name = workbook.SheetNames[0];
+        let worksheet = workbook.Sheets[first_sheet_name];
+
+        let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+
+
+        console.log(parsedData.length);
+    });
+
+
+
+
+
+
+
+        return parsedData;}
+    catch(error){
+        console.error('Error reading Excel file:', error.message);
+    return error;
+    }
+
 }
 
 async function readTheExcelFromWebsite(resource){
@@ -721,7 +789,7 @@ app.route('/api/get-applications').get(onGetApplication)
 async function onGetApplication(req,res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
-        await readExcelOnline(resource).then((parsedData)=> {
+        await readTheExcelFromWebsite(resource).then((parsedData)=> {
             if  (parsedData && parsedData.length > 0) {
                 res.status(200).json({
                     data: parsedData,
@@ -779,7 +847,8 @@ async function onGetApplication_inprogress(req,res) {
 }
 
 async function onGetApplication__(req, res) {
-    const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    // const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    const resource = 'https://www.dropbox.com/scl/fi/3s4vk1h84b8jq8g4l4cla/applications.xlsx?rlkey=f9vfywruizeq47uvqx9hlvl0v&dl=1'
     try {
 
         // Make an HTTP request to get the Excel file
@@ -810,10 +879,12 @@ async function onGetApplication__(req, res) {
                 let bstr = arr.join("");
                 // console.log('bstr::', bstr);
                 let workbook = XLSX.read(bstr, {type:"binary"});
+                // let workbook = XLSX.read(bstr);
                 let first_sheet_name = workbook.SheetNames[0];
                 let worksheet = workbook.Sheets[first_sheet_name];
 
                 let parsedData = XLSX.utils.sheet_to_json(worksheet,{raw:true});
+                // let parsedData = XLSX.utils.sheet_to_json(worksheet);
 
 
                 console.log('parsedData gotten::', parsedData.length);
@@ -844,12 +915,12 @@ async function onGetApplication__(req, res) {
 async function onGetApplication2(req, res) {
     // const emailData = req.body;
     // const resource = req.body;
-    const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    const resource = 'applications.xlsx';
     console.log('resource;:', resource);
 
     try {
 
-        await readTheExcelFromWebsite(resource).then(
+        await readTheExcelFromWebsite3(resource).then(
             (answer) => {
                 if  (answer && answer.length > 0) {
                     res.status(200).json({
