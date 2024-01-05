@@ -633,7 +633,7 @@ async function readTheExcelFromWebsite3(resource){
 
 
         console.log(parsedData.length);
-        console.log('parsedData gotten::', parsedData);
+        console.log('parsedData gotten::', parsedData.length);
     });
 
 
@@ -658,8 +658,8 @@ async function readTheExcelFromWebsite(resource){
             'Content-Type': 'application/arraybuffer'
         }
     }
-
-    https.get(resource, (res) => {
+    let answer = [];
+    await https.get(resource, (res) => {
         const { statusCode } = res;
         const contentType = res.headers['content-type'];
         console.log('content type::', contentType);
@@ -702,8 +702,9 @@ async function readTheExcelFromWebsite(resource){
            // console.log(chunk);
 
         });
-        console.log('..done with CHUNK')
+        // console.log('..done with CHUNK')
         res.on('end', () => {
+            let ans = []
             try {
                 console.log('..done with CHUNK')
                 // console.log('CHECK::', check);
@@ -725,17 +726,20 @@ async function readTheExcelFromWebsite(resource){
 
 
                 console.log('parsedData gotten::', parsedData.length);
-
-                return parsedData;
+                answer = parsedData;
+                // return parsedData;
             } catch (e) {
                 console.error(e.message);
-                return [];
+                // return [];
             }
+            // return ans;
         });
     }).on('error', (e) => {
         console.error(`Got error: ${e.message}`);
         return [];
     });
+    return answer;
+
 }
 
 // Function to download the Excel file
@@ -786,13 +790,14 @@ async function readExcelOnline(excelUrl) {
     }
 }
 // this backend should get student application and send results to the main application
-app.route('/api/get-applications').get(onGetApplication)
+app.route('/api/get-applications').get(onGetApplication__)
 
 
 async function onGetApplication(req,res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
-        readTheExcelFromWebsite(resource).then((parsedData)=> {
+        await readTheExcelFromWebsite(resource).then((parsedData)=> {
+            console.log('inside then', parsedData);
             if  (parsedData && parsedData.length > 0) {
                 console.log('sending data');
                 res.status(200).json({
@@ -853,8 +858,8 @@ async function onGetApplication_inprogress(req,res) {
 }
 
 async function onGetApplication__(req, res) {
-    // const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
-    const resource = 'https://www.dropbox.com/scl/fi/3s4vk1h84b8jq8g4l4cla/applications.xlsx?rlkey=f9vfywruizeq47uvqx9hlvl0v&dl=1'
+    const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
+    // const resource = 'https://www.dropbox.com/scl/fi/3s4vk1h84b8jq8g4l4cla/applications.xlsx?rlkey=f9vfywruizeq47uvqx9hlvl0v&dl=1'
     try {
 
         // Make an HTTP request to get the Excel file
