@@ -15,10 +15,12 @@ const XLSX = require("xlsx");
 require('dotenv').config();
 const ExcelJS = require('exceljs');
 const fs = require('fs');
+const cors = require('cors');
 
 
 
 const app = express();
+app.use(cors());
 const port = 3000
 app.listen(port, () => {
     console.log (`Listening on port ${port}`)
