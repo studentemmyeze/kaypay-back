@@ -792,7 +792,7 @@ app.route('/api/get-applications').get(onGetApplication)
 async function onGetApplication(req,res) {
     const resource = 'https://api.topfaith.edu.ng/admin/admission/application/download-all';
     try {
-        await readTheExcelFromWebsite(resource).then((parsedData)=> {
+        readTheExcelFromWebsite(resource).then((parsedData)=> {
             if  (parsedData && parsedData.length > 0) {
                 console.log('sending data');
                 res.status(200).json({
