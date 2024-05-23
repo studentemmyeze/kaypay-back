@@ -16,6 +16,7 @@ require('dotenv').config();
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const cors = require('cors');
+const axios = require('axios');
 
 
 
@@ -1509,6 +1510,16 @@ app.get('/auth/callback', async (req, res) => {
     } catch (error) {
         console.error('Error exchanging code for access token:', error);
         res.status(500).send('Failed to complete OAuth2 flow.');
+    }
+});
+
+app.get('/fetch-file', async (req,res) => {
+    const url = req.query.url;
+    try {
+        const response = await axios.get(url, { responseType: 'text' });
+        res.send(response.data);
+    } catch (error) {
+        res.status(500).send('Error fetching the file');
     }
 });
 
